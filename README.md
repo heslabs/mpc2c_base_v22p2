@@ -8,6 +8,9 @@ $ cd ./haps_mpsoc_base
 $ soruce ./setenv.sh
 ```
 * Modify the environment variable $EDA_HOME to match your tools installation folder
+```
+export EDA_HOME=/home/eda
+```
 
 ---
 ### Open prebuilt Vivado project
