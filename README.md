@@ -1,4 +1,10 @@
-### Step to create and build Vivado hardware project
+### Clone the GitHub project
+```
+$ git clone https://github.com/heslabs/haps_mpsoc_base
+```
+
+---
+### Create and build Vivado hardware project
 
 1. Create the Vivado block diagram from prebuilt tcl file
 ```
@@ -31,8 +37,9 @@
 ```
 
 ---
-### FPGA Utilization Report
+### FPGA Utilization and Timing Report
 
+* FPGA Utilization Report
 ```
   +----------------------------+-------+-------+------------+-----------+-------+
   |          Site Type         |  Used | Fixed | Prohibited | Available | Util% |
@@ -55,7 +62,7 @@
 
 
 ---
-### FPGA Timing Report
+* FPGA Timing Report
 
 ```
 WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints
