@@ -9,13 +9,8 @@ $ soruce ./setenv.sh
 ```
 * Modify the environment variable $EDA_HOME to match your tools installation folder
 ```
+vim setenv.sh
 export EDA_HOME=/home/eda
-```
-
----
-### Open prebuilt Vivado project
-```
-  $ make hw-prj
 ```
 
 ---
@@ -26,17 +21,22 @@ export EDA_HOME=/home/eda
   $ make hw-new
 ```
 
-2. Launch synthesis and implementaiton of Vivadio project
+2. Open prebuilt Vivado project
+```
+  $ make hw-prj
+```
+
+3. Launch synthesis and implementaiton of Vivadio project
 ```
   $ make hw-com
 ```
 
-3. Export hardware and bitstream
+4. Export hardware and bitstream
 ```
   $ make hw-exp
 ```
 
-4. Review the project outputs in ./export
+5. Review the project outputs in ./export
 
 * Export hardware (\*.xsa) and bitstream (\*.bit)
 ```
