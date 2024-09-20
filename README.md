@@ -23,7 +23,7 @@
     ./export/c2c_wrapper.bit
 ```
 
-* Review timing and utilization report
+* Review the utilization and timing report
 
 ```
     ./export/hw_timing.rpt  
