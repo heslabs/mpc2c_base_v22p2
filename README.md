@@ -8,6 +8,7 @@ $ cd ./haps_mpsoc_base
 $ soruce ./setenv.sh
 ```
 * Modify the environment variable $EDA_HOME to match your tools installation folder
+
 ```
 vim setenv.sh
 export EDA_HOME=/home/eda
