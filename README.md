@@ -58,7 +58,7 @@
 ### FPGA Timing Report
 
 ```
-    WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints
+WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------
      -1.199      -13.456                     12               123107        0.005        0.000                      0               122181        0.065        0.000                       0                 52784
 ```
@@ -66,14 +66,9 @@
 Timing constraints are not met.
 
 ```
-gclk_clk_p x
-{0.000 5.000}          10.000          100.000
-
-clk_100M_c2c_clk_wiz_0_0
-{0.000 5.000}          10.000          100.000
-
-clk_50M_c2c_clk_wiz_0_0
-{0.000 10.000}         20.000          50.000
+gclk_clk_p x               {0.000 5.000}     10.000          100.000
+clk_100M_c2c_clk_wiz_0_0   {0.000 5.000}     10.000          100.000
+clk_50M_c2c_clk_wiz_0_0    {0.000 10.000}    20.000          50.000
 ```
 
 
