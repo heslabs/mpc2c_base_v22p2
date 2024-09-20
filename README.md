@@ -65,5 +65,16 @@
 
 Timing constraints are not met.
 
+```
+gclk_clk_p x
+{0.000 5.000}          10.000          100.000
+
+clk_100M_c2c_clk_wiz_0_0
+{0.000 5.000}          10.000          100.000
+
+clk_50M_c2c_clk_wiz_0_0
+{0.000 10.000}         20.000          50.000
+```
+
 
 
