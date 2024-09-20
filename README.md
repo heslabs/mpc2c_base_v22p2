@@ -1,4 +1,4 @@
-### Step to create and build Vivado hardware design 
+### Step to create and build Vivado hardware project
 
 1. Create the Vivado block diagram from prebuilt tcl file
 ```
@@ -31,38 +31,39 @@
 ```
 
 ---
-### Utilization report
+### FPGA Utilization Report
 
-------------------------------------------------------------------------------------------------
-| Design Timing Summary
-| ---------------------
-------------------------------------------------------------------------------------------------
+```
+  +----------------------------+-------+-------+------------+-----------+-------+
+  |          Site Type         |  Used | Fixed | Prohibited | Available | Util% |
+  +----------------------------+-------+-------+------------+-----------+-------+
+  | CLB LUTs                   | 29992 |     0 |          0 |   4085760 |  0.73 |
+  |   LUT as Logic             | 26570 |     0 |          0 |   4085760 |  0.65 |
+  |   LUT as Memory            |  3422 |     0 |          0 |    956160 |  0.36 |
+  |     LUT as Distributed RAM |  2206 |     0 |            |           |       |
+  |     LUT as Shift Register  |  1216 |     0 |            |           |       |
+  | CLB Registers              | 46108 |     0 |          0 |   8171520 |  0.56 |
+  |   Register as Flip Flop    | 46107 |     0 |          0 |   8171520 |  0.56 |
+  |   Register as Latch        |     0 |     0 |          0 |   8171520 |  0.00 |
+  |   Register as AND/OR       |     1 |     0 |          0 |   8171520 | <0.01 |
+  | CARRY8                     |   256 |     0 |          0 |    510720 |  0.05 |
+  | F7 Muxes                   |   655 |     0 |          0 |   2042880 |  0.03 |
+  | F8 Muxes                   |    87 |     0 |          0 |   1021440 | <0.01 |
+  | F9 Muxes                   |     0 |     0 |          0 |    510720 |  0.00 |
+  +----------------------------+-------+-------+------------+-----------+-------+
+```
 
+
+---
+### FPGA Timing Report
+
+```
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------
      -1.199      -13.456                     12               123107        0.005        0.000                      0               122181        0.065        0.000                       0                 52784
-
+```
 
 Timing constraints are not met.
 
----
-### Timing report
 
-+----------------------------+-------+-------+------------+-----------+-------+
-|          Site Type         |  Used | Fixed | Prohibited | Available | Util% |
-+----------------------------+-------+-------+------------+-----------+-------+
-| CLB LUTs                   | 29992 |     0 |          0 |   4085760 |  0.73 |
-|   LUT as Logic             | 26570 |     0 |          0 |   4085760 |  0.65 |
-|   LUT as Memory            |  3422 |     0 |          0 |    956160 |  0.36 |
-|     LUT as Distributed RAM |  2206 |     0 |            |           |       |
-|     LUT as Shift Register  |  1216 |     0 |            |           |       |
-| CLB Registers              | 46108 |     0 |          0 |   8171520 |  0.56 |
-|   Register as Flip Flop    | 46107 |     0 |          0 |   8171520 |  0.56 |
-|   Register as Latch        |     0 |     0 |          0 |   8171520 |  0.00 |
-|   Register as AND/OR       |     1 |     0 |          0 |   8171520 | <0.01 |
-| CARRY8                     |   256 |     0 |          0 |    510720 |  0.05 |
-| F7 Muxes                   |   655 |     0 |          0 |   2042880 |  0.03 |
-| F8 Muxes                   |    87 |     0 |          0 |   1021440 | <0.01 |
-| F9 Muxes                   |     0 |     0 |          0 |    510720 |  0.00 |
-+----------------------------+-------+-------+------------+-----------+-------+
 
