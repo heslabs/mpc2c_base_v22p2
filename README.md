@@ -17,7 +17,7 @@
 
 4. Review the project outputs in ./export
 
-* Export hardware (*.xsa) and bitstream (*.bit)
+* Export hardware (\*.xsa) and bitstream (\*.bit)
 ```
     ./export/c2c_wrapper.xsa
     ./export/c2c_wrapper.bit
