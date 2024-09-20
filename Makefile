@@ -43,3 +43,8 @@ hw-exp:
 	@cp -f ./vivado/*.rpt ./export
 	@ls -lh ./export/*.*
 
+uart:
+	@sudo chmod 666 /dev/ttyUSB*
+	@sudo putty -serial -sercfg 115200,8,n,1,N -fn "client:Ubuntu Mono 16"  /dev/ttyUSB1 &
+
+
