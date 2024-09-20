@@ -1,4 +1,4 @@
-## haps_mpsoc_base
+### Step to create and build Vivado hardware design 
 
 1. Create the Vivado block diagram from prebuilt tcl file
 ```
