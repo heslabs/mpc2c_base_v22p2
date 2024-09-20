@@ -20,7 +20,7 @@ help:
 	@echo ""
 
 
-hw: hw-new hw-com hw=exp
+hw: hw-new hw-com hw-exp
 
 hw-prj:
 	@cd ./vivado && vivado -mode gui -project ./$(PRJ).xpr &
