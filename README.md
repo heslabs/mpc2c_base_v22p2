@@ -2,6 +2,18 @@
 ```
 $ git clone https://github.com/heslabs/haps_mpsoc_base
 ```
+### Source tools environment
+```
+$ cd ./haps_mpsoc_base
+$ soruce ./setenv.sh
+```
+* Modify the environment variable $EDA_HOME to match your tools installation folder
+
+---
+### Open prebuilt Vivado project
+```
+  $ make hw-prj
+```
 
 ---
 ### Create and build Vivado hardware project
