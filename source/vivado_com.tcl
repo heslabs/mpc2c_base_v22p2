@@ -3,9 +3,6 @@ set TIME_start [clock clicks -milliseconds]
 set systemTime [clock seconds]
 set DS [clock format $systemTime -format %y%b%d]
 
-#open_project vivado/proj.xpr
-#set_property SEVERITY {Warning} [get_drc_checks NSTD-1]
-
 ## Launch synthesis
 update_compile_order -fileset sources_1
 reset_run synth_1

@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: c2c
+# This is a generated script based on design: top
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source c2c_script.tcl
+# source top_script.tcl
 
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
@@ -49,7 +49,7 @@ if { $list_projs eq "" } {
 
 # CHANGE DESIGN NAME HERE
 variable design_name
-set design_name c2c
+set design_name top
 
 # If you do not already have an existing IP Integrator design open,
 # you can create a design using the following command:
@@ -123,9 +123,7 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
-xilinx.com:ip:aurora_64b66b:12.0\
 xilinx.com:ip:axi_traffic_gen:3.0\
-xilinx.com:ip:axi_chip2chip:5.0\
 xilinx.com:ip:clk_wiz:6.0\
 xilinx.com:ip:ddr4:2.2\
 xilinx.com:ip:proc_sys_reset:5.0\
@@ -133,6 +131,8 @@ xilinx.com:ip:smartconnect:1.0\
 xilinx.com:ip:system_ila:1.1\
 xilinx.com:ip:util_vector_logic:2.0\
 xilinx.com:ip:xlconstant:1.1\
+xilinx.com:ip:aurora_64b66b:12.0\
+xilinx.com:ip:axi_chip2chip:5.0\
 "
 
    set list_ips_missing ""
@@ -161,6 +161,223 @@ if { $bCheckIPsPassed != 1 } {
 # DESIGN PROCs
 ##################################################################
 
+
+# Hierarchical cell: axi_slave
+proc create_hier_cell_axi_slave { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2092 -severity "ERROR" "create_hier_cell_axi_slave() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_RX_rtl:1.0 aur_slave_rx
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_TX_rtl:1.0 aur_slave_tx
+
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 aurora_refclk
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi_lite
+
+
+  # Create pins
+  create_bd_pin -dir I -type clk aurora_init_clk
+  create_bd_pin -dir O -type rst aurora_mmcm_not_locked
+  create_bd_pin -dir I -type rst aurora_pma_init_in
+  create_bd_pin -dir O axi_c2c_aurora_channel_up
+  create_bd_pin -dir O axi_c2c_link_status_out
+  create_bd_pin -dir O -type clk axi_c2c_phy_clk
+  create_bd_pin -dir O -type clk gt_refclk1_out
+  create_bd_pin -dir O -from 0 -to 1 lane_up
+  create_bd_pin -dir I -type clk m_axi_lite_aclk
+  create_bd_pin -dir O -type clk sync_clk_out
+
+  # Create instance: aurora_slave, and set properties
+  set aurora_slave [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_slave ]
+  set_property -dict [list \
+    CONFIG.C_AURORA_LANES {2} \
+    CONFIG.C_LINE_RATE {5} \
+    CONFIG.C_REFCLK_FREQUENCY {156.25} \
+    CONFIG.C_REFCLK_SOURCE {MGTREFCLK1_of_Quad_X0Y1} \
+    CONFIG.C_USE_BYTESWAP {true} \
+    CONFIG.SupportLevel {1} \
+    CONFIG.drp_mode {Disabled} \
+    CONFIG.interface_mode {Streaming} \
+  ] $aurora_slave
+
+
+  # Create instance: c2c_slave, and set properties
+  set c2c_slave [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_chip2chip:5.0 c2c_slave ]
+  set_property -dict [list \
+    CONFIG.C_AXI_ADDR_WIDTH {40} \
+    CONFIG.C_AXI_DATA_WIDTH {64} \
+    CONFIG.C_INCLUDE_AXILITE {2} \
+    CONFIG.C_INTERFACE_MODE {0} \
+    CONFIG.C_INTERFACE_TYPE {2} \
+    CONFIG.C_MASTER_FPGA {0} \
+    CONFIG.C_M_AXI_ID_WIDTH {0} \
+    CONFIG.C_M_AXI_WUSER_WIDTH {0} \
+    CONFIG.C_SUPPORT_NARROWBURST {true} \
+  ] $c2c_slave
+
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net GT_DIFF_REFCLK1_0_1 [get_bd_intf_pins aurora_refclk] [get_bd_intf_pins aurora_slave/GT_DIFF_REFCLK1]
+  connect_bd_intf_net -intf_net GT_SERIAL_RX_0_1 [get_bd_intf_pins aur_slave_rx] [get_bd_intf_pins aurora_slave/GT_SERIAL_RX]
+  connect_bd_intf_net -intf_net aurora_slave_GT_SERIAL_TX [get_bd_intf_pins aur_slave_tx] [get_bd_intf_pins aurora_slave/GT_SERIAL_TX]
+  connect_bd_intf_net -intf_net aurora_slave_USER_DATA_M_AXIS_RX [get_bd_intf_pins aurora_slave/USER_DATA_M_AXIS_RX] [get_bd_intf_pins c2c_slave/AXIS_RX]
+  connect_bd_intf_net -intf_net c2c_slave_AXIS_TX [get_bd_intf_pins aurora_slave/USER_DATA_S_AXIS_TX] [get_bd_intf_pins c2c_slave/AXIS_TX]
+  connect_bd_intf_net -intf_net c2c_slave_m_axi [get_bd_intf_pins m_axi] [get_bd_intf_pins c2c_slave/m_axi]
+  connect_bd_intf_net -intf_net c2c_slave_m_axi_lite [get_bd_intf_pins m_axi_lite] [get_bd_intf_pins c2c_slave/m_axi_lite]
+
+  # Create port connections
+  connect_bd_net -net aurora_slave_channel_up [get_bd_pins axi_c2c_aurora_channel_up] [get_bd_pins aurora_slave/channel_up] [get_bd_pins c2c_slave/axi_c2c_aurora_channel_up]
+  connect_bd_net -net aurora_slave_gt_refclk1_out [get_bd_pins gt_refclk1_out] [get_bd_pins aurora_slave/gt_refclk1_out]
+  connect_bd_net -net aurora_slave_lane_up [get_bd_pins lane_up] [get_bd_pins aurora_slave/lane_up]
+  connect_bd_net -net aurora_slave_mmcm_not_locked_out [get_bd_pins aurora_mmcm_not_locked] [get_bd_pins aurora_slave/mmcm_not_locked_out] [get_bd_pins c2c_slave/aurora_mmcm_not_locked]
+  connect_bd_net -net aurora_slave_sync_clk_out [get_bd_pins sync_clk_out] [get_bd_pins aurora_slave/sync_clk_out]
+  connect_bd_net -net aurora_slave_user_clk_out [get_bd_pins axi_c2c_phy_clk] [get_bd_pins aurora_slave/user_clk_out] [get_bd_pins c2c_slave/axi_c2c_phy_clk]
+  connect_bd_net -net c2c_slave_aurora_pma_init_out [get_bd_pins aurora_slave/pma_init] [get_bd_pins c2c_slave/aurora_pma_init_out]
+  connect_bd_net -net c2c_slave_aurora_reset_pb [get_bd_pins aurora_slave/reset_pb] [get_bd_pins c2c_slave/aurora_reset_pb]
+  connect_bd_net -net c2c_slave_axi_c2c_link_status_out [get_bd_pins axi_c2c_link_status_out] [get_bd_pins c2c_slave/axi_c2c_link_status_out]
+  connect_bd_net -net clk_wiz_0_clk_100M [get_bd_pins m_axi_lite_aclk] [get_bd_pins c2c_slave/m_aclk] [get_bd_pins c2c_slave/m_axi_lite_aclk]
+  connect_bd_net -net clk_wiz_0_clk_50M [get_bd_pins aurora_init_clk] [get_bd_pins aurora_slave/init_clk] [get_bd_pins c2c_slave/aurora_init_clk]
+  connect_bd_net -net xlconstant_0_dout [get_bd_pins aurora_pma_init_in] [get_bd_pins c2c_slave/aurora_pma_init_in]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
+
+# Hierarchical cell: axi_master
+proc create_hier_cell_axi_master { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2092 -severity "ERROR" "create_hier_cell_axi_master() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_RX_rtl:1.0 aur_master_rx
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:display_aurora:GT_Serial_Transceiver_Pins_TX_rtl:1.0 aur_master_tx
+
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 s_axi
+
+
+  # Create pins
+  create_bd_pin -dir I -type rst aurora_mmcm_not_locked
+  create_bd_pin -dir I -type rst aurora_pma_init_in
+  create_bd_pin -dir O axi_c2c_link_status_out
+  create_bd_pin -dir O channel_up
+  create_bd_pin -dir I -type clk init_clk
+  create_bd_pin -dir O -from 0 -to 1 lane_up
+  create_bd_pin -dir I -type clk refclk1_in
+  create_bd_pin -dir I -type clk s_aclk
+  create_bd_pin -dir I -type clk sync_clk
+  create_bd_pin -dir I -type clk user_clk
+
+  # Create instance: aurora_master, and set properties
+  set aurora_master [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_master ]
+  set_property -dict [list \
+    CONFIG.C_AURORA_LANES {2} \
+    CONFIG.C_LINE_RATE {5} \
+    CONFIG.C_REFCLK_SOURCE {MGTREFCLK1_of_Quad_X0Y1} \
+    CONFIG.C_START_LANE {X0Y6} \
+    CONFIG.C_USE_BYTESWAP {true} \
+    CONFIG.drp_mode {Disabled} \
+    CONFIG.interface_mode {Streaming} \
+  ] $aurora_master
+
+
+  # Create instance: c2c_master, and set properties
+  set c2c_master [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_chip2chip:5.0 c2c_master ]
+  set_property -dict [list \
+    CONFIG.C_AXI_ADDR_WIDTH {49} \
+    CONFIG.C_AXI_DATA_WIDTH {64} \
+    CONFIG.C_INTERFACE_MODE {0} \
+    CONFIG.C_INTERFACE_TYPE {2} \
+    CONFIG.C_SUPPORT_NARROWBURST {true} \
+  ] $c2c_master
+
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net GT_SERIAL_RX_1_1 [get_bd_intf_pins aur_master_rx] [get_bd_intf_pins aurora_master/GT_SERIAL_RX]
+  connect_bd_intf_net -intf_net aurora_master_GT_SERIAL_TX [get_bd_intf_pins aur_master_tx] [get_bd_intf_pins aurora_master/GT_SERIAL_TX]
+  connect_bd_intf_net -intf_net aurora_master_USER_DATA_M_AXIS_RX [get_bd_intf_pins aurora_master/USER_DATA_M_AXIS_RX] [get_bd_intf_pins c2c_master/AXIS_RX]
+  connect_bd_intf_net -intf_net axi_traffic_gen_0_M_AXI [get_bd_intf_pins s_axi] [get_bd_intf_pins c2c_master/s_axi]
+  connect_bd_intf_net -intf_net c2c_master_AXIS_TX [get_bd_intf_pins aurora_master/USER_DATA_S_AXIS_TX] [get_bd_intf_pins c2c_master/AXIS_TX]
+
+  # Create port connections
+  connect_bd_net -net aurora_master_channel_up [get_bd_pins channel_up] [get_bd_pins aurora_master/channel_up] [get_bd_pins c2c_master/axi_c2c_aurora_channel_up]
+  connect_bd_net -net aurora_master_lane_up [get_bd_pins lane_up] [get_bd_pins aurora_master/lane_up]
+  connect_bd_net -net aurora_slave_gt_refclk1_out [get_bd_pins refclk1_in] [get_bd_pins aurora_master/refclk1_in]
+  connect_bd_net -net aurora_slave_mmcm_not_locked_out [get_bd_pins aurora_mmcm_not_locked] [get_bd_pins c2c_master/aurora_mmcm_not_locked]
+  connect_bd_net -net aurora_slave_sync_clk_out [get_bd_pins sync_clk] [get_bd_pins aurora_master/sync_clk]
+  connect_bd_net -net aurora_slave_user_clk_out [get_bd_pins user_clk] [get_bd_pins aurora_master/user_clk] [get_bd_pins c2c_master/axi_c2c_phy_clk]
+  connect_bd_net -net c2c_master_aurora_pma_init_out [get_bd_pins aurora_master/pma_init] [get_bd_pins c2c_master/aurora_pma_init_out]
+  connect_bd_net -net c2c_master_aurora_reset_pb [get_bd_pins aurora_master/reset_pb] [get_bd_pins c2c_master/aurora_reset_pb]
+  connect_bd_net -net c2c_master_axi_c2c_link_status_out [get_bd_pins axi_c2c_link_status_out] [get_bd_pins c2c_master/axi_c2c_link_status_out]
+  connect_bd_net -net clk_wiz_0_clk_100M [get_bd_pins s_aclk] [get_bd_pins c2c_master/s_aclk]
+  connect_bd_net -net clk_wiz_0_clk_50M [get_bd_pins init_clk] [get_bd_pins aurora_master/init_clk] [get_bd_pins c2c_master/aurora_init_clk]
+  connect_bd_net -net xlconstant_0_dout [get_bd_pins aurora_pma_init_in] [get_bd_pins c2c_master/aurora_pma_init_in]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
 
 
 # Procedure to create entire design; Provide argument to make
@@ -222,33 +439,6 @@ proc create_root_design { parentCell } {
   # Create ports
   set rst_btn [ create_bd_port -dir I -type rst rst_btn ]
 
-  # Create instance: aurora_master, and set properties
-  set aurora_master [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_master ]
-  set_property -dict [list \
-    CONFIG.C_AURORA_LANES {2} \
-    CONFIG.C_LINE_RATE {5} \
-    CONFIG.C_REFCLK_SOURCE {MGTREFCLK1_of_Quad_X0Y1} \
-    CONFIG.C_START_LANE {X0Y6} \
-    CONFIG.C_USE_BYTESWAP {true} \
-    CONFIG.drp_mode {Disabled} \
-    CONFIG.interface_mode {Streaming} \
-  ] $aurora_master
-
-
-  # Create instance: aurora_slave, and set properties
-  set aurora_slave [ create_bd_cell -type ip -vlnv xilinx.com:ip:aurora_64b66b:12.0 aurora_slave ]
-  set_property -dict [list \
-    CONFIG.C_AURORA_LANES {2} \
-    CONFIG.C_LINE_RATE {5} \
-    CONFIG.C_REFCLK_FREQUENCY {156.25} \
-    CONFIG.C_REFCLK_SOURCE {MGTREFCLK1_of_Quad_X0Y1} \
-    CONFIG.C_USE_BYTESWAP {true} \
-    CONFIG.SupportLevel {1} \
-    CONFIG.drp_mode {Disabled} \
-    CONFIG.interface_mode {Streaming} \
-  ] $aurora_slave
-
-
   # Create instance: axi_interconnect_0, and set properties
   set axi_interconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0 ]
   set_property -dict [list \
@@ -256,6 +446,12 @@ proc create_root_design { parentCell } {
     CONFIG.NUM_SI {1} \
   ] $axi_interconnect_0
 
+
+  # Create instance: axi_master
+  create_hier_cell_axi_master [current_bd_instance .] axi_master
+
+  # Create instance: axi_slave
+  create_hier_cell_axi_slave [current_bd_instance .] axi_slave
 
   # Create instance: axi_traffic_gen_0, and set properties
   set axi_traffic_gen_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_traffic_gen:3.0 axi_traffic_gen_0 ]
@@ -267,32 +463,6 @@ proc create_root_design { parentCell } {
     CONFIG.C_M_AXI_DATA_WIDTH {64} \
     CONFIG.C_S_AXI_DATA_WIDTH {64} \
   ] $axi_traffic_gen_0
-
-
-  # Create instance: c2c_master, and set properties
-  set c2c_master [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_chip2chip:5.0 c2c_master ]
-  set_property -dict [list \
-    CONFIG.C_AXI_ADDR_WIDTH {49} \
-    CONFIG.C_AXI_DATA_WIDTH {64} \
-    CONFIG.C_INTERFACE_MODE {0} \
-    CONFIG.C_INTERFACE_TYPE {2} \
-    CONFIG.C_SUPPORT_NARROWBURST {true} \
-  ] $c2c_master
-
-
-  # Create instance: c2c_slave, and set properties
-  set c2c_slave [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_chip2chip:5.0 c2c_slave ]
-  set_property -dict [list \
-    CONFIG.C_AXI_ADDR_WIDTH {40} \
-    CONFIG.C_AXI_DATA_WIDTH {64} \
-    CONFIG.C_INCLUDE_AXILITE {2} \
-    CONFIG.C_INTERFACE_MODE {0} \
-    CONFIG.C_INTERFACE_TYPE {2} \
-    CONFIG.C_MASTER_FPGA {0} \
-    CONFIG.C_M_AXI_ID_WIDTH {0} \
-    CONFIG.C_M_AXI_WUSER_WIDTH {0} \
-    CONFIG.C_SUPPORT_NARROWBURST {true} \
-  ] $c2c_slave
 
 
   # Create instance: clk_wiz_0, and set properties
@@ -364,57 +534,49 @@ proc create_root_design { parentCell } {
   # Create interface connections
   connect_bd_intf_net -intf_net C0_SYS_CLK_0_1 [get_bd_intf_ports c0_sys_clk] [get_bd_intf_pins ddr4_0/C0_SYS_CLK]
   connect_bd_intf_net -intf_net CLK_IN1_D_0_1 [get_bd_intf_ports gclk] [get_bd_intf_pins clk_wiz_0/CLK_IN1_D]
-  connect_bd_intf_net -intf_net GT_DIFF_REFCLK1_0_1 [get_bd_intf_ports aurora_refclk] [get_bd_intf_pins aurora_slave/GT_DIFF_REFCLK1]
-  connect_bd_intf_net -intf_net GT_SERIAL_RX_0_1 [get_bd_intf_ports aur_slave_rx] [get_bd_intf_pins aurora_slave/GT_SERIAL_RX]
-  connect_bd_intf_net -intf_net GT_SERIAL_RX_1_1 [get_bd_intf_ports aur_master_rx] [get_bd_intf_pins aurora_master/GT_SERIAL_RX]
-  connect_bd_intf_net -intf_net aurora_master_GT_SERIAL_TX [get_bd_intf_ports aur_master_tx] [get_bd_intf_pins aurora_master/GT_SERIAL_TX]
-  connect_bd_intf_net -intf_net aurora_master_USER_DATA_M_AXIS_RX [get_bd_intf_pins aurora_master/USER_DATA_M_AXIS_RX] [get_bd_intf_pins c2c_master/AXIS_RX]
-  connect_bd_intf_net -intf_net aurora_slave_GT_SERIAL_TX [get_bd_intf_ports aur_slave_tx] [get_bd_intf_pins aurora_slave/GT_SERIAL_TX]
-  connect_bd_intf_net -intf_net aurora_slave_USER_DATA_M_AXIS_RX [get_bd_intf_pins aurora_slave/USER_DATA_M_AXIS_RX] [get_bd_intf_pins c2c_slave/AXIS_RX]
+  connect_bd_intf_net -intf_net GT_DIFF_REFCLK1_0_1 [get_bd_intf_ports aurora_refclk] [get_bd_intf_pins axi_slave/aurora_refclk]
+  connect_bd_intf_net -intf_net GT_SERIAL_RX_0_1 [get_bd_intf_ports aur_slave_rx] [get_bd_intf_pins axi_slave/aur_slave_rx]
+  connect_bd_intf_net -intf_net GT_SERIAL_RX_1_1 [get_bd_intf_ports aur_master_rx] [get_bd_intf_pins axi_master/aur_master_rx]
+  connect_bd_intf_net -intf_net aurora_master_GT_SERIAL_TX [get_bd_intf_ports aur_master_tx] [get_bd_intf_pins axi_master/aur_master_tx]
+  connect_bd_intf_net -intf_net aurora_slave_GT_SERIAL_TX [get_bd_intf_ports aur_slave_tx] [get_bd_intf_pins axi_slave/aur_slave_tx]
   connect_bd_intf_net -intf_net axi_interconnect_0_M00_AXI [get_bd_intf_pins axi_interconnect_0/M00_AXI] [get_bd_intf_pins ddr4_0/C0_DDR4_S_AXI]
-  connect_bd_intf_net -intf_net axi_traffic_gen_0_M_AXI [get_bd_intf_pins axi_traffic_gen_0/M_AXI] [get_bd_intf_pins c2c_master/s_axi]
-  connect_bd_intf_net -intf_net c2c_master_AXIS_TX [get_bd_intf_pins aurora_master/USER_DATA_S_AXIS_TX] [get_bd_intf_pins c2c_master/AXIS_TX]
-  connect_bd_intf_net -intf_net c2c_slave_AXIS_TX [get_bd_intf_pins aurora_slave/USER_DATA_S_AXIS_TX] [get_bd_intf_pins c2c_slave/AXIS_TX]
-  connect_bd_intf_net -intf_net c2c_slave_m_axi [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins c2c_slave/m_axi]
+  connect_bd_intf_net -intf_net axi_traffic_gen_0_M_AXI [get_bd_intf_pins axi_master/s_axi] [get_bd_intf_pins axi_traffic_gen_0/M_AXI]
+  connect_bd_intf_net -intf_net c2c_slave_m_axi [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins axi_slave/m_axi]
 connect_bd_intf_net -intf_net [get_bd_intf_nets c2c_slave_m_axi] [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins system_ila_2/SLOT_0_AXI]
-  connect_bd_intf_net -intf_net c2c_slave_m_axi_lite [get_bd_intf_pins c2c_slave/m_axi_lite] [get_bd_intf_pins smartconnect_0/S00_AXI]
+  connect_bd_intf_net -intf_net c2c_slave_m_axi_lite [get_bd_intf_pins axi_slave/m_axi_lite] [get_bd_intf_pins smartconnect_0/S00_AXI]
   connect_bd_intf_net -intf_net ddr4_0_C0_DDR4 [get_bd_intf_ports c0_ddr4] [get_bd_intf_pins ddr4_0/C0_DDR4]
   connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins axi_traffic_gen_0/S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
 
   # Create port connections
   connect_bd_net -net M00_ARESETN_1 [get_bd_pins axi_interconnect_0/M00_ARESETN] [get_bd_pins ddr4_0/c0_ddr4_aresetn] [get_bd_pins proc_sys_reset_1/peripheral_aresetn]
-  connect_bd_net -net aurora_master_channel_up [get_bd_pins aurora_master/channel_up] [get_bd_pins c2c_master/axi_c2c_aurora_channel_up] [get_bd_pins system_ila_0/probe3]
+  connect_bd_net -net aurora_master_channel_up [get_bd_pins axi_master/channel_up] [get_bd_pins system_ila_0/probe3]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets aurora_master_channel_up]
-  connect_bd_net -net aurora_master_lane_up [get_bd_pins aurora_master/lane_up] [get_bd_pins system_ila_0/probe4]
+  connect_bd_net -net aurora_master_lane_up [get_bd_pins axi_master/lane_up] [get_bd_pins system_ila_0/probe4]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets aurora_master_lane_up]
-  connect_bd_net -net aurora_slave_channel_up [get_bd_pins aurora_slave/channel_up] [get_bd_pins c2c_slave/axi_c2c_aurora_channel_up] [get_bd_pins system_ila_0/probe0]
-  connect_bd_net -net aurora_slave_gt_refclk1_out [get_bd_pins aurora_master/refclk1_in] [get_bd_pins aurora_slave/gt_refclk1_out]
-  connect_bd_net -net aurora_slave_lane_up [get_bd_pins aurora_slave/lane_up] [get_bd_pins system_ila_0/probe1]
+  connect_bd_net -net aurora_slave_channel_up [get_bd_pins axi_slave/axi_c2c_aurora_channel_up] [get_bd_pins system_ila_0/probe0]
+  connect_bd_net -net aurora_slave_gt_refclk1_out [get_bd_pins axi_master/refclk1_in] [get_bd_pins axi_slave/gt_refclk1_out]
+  connect_bd_net -net aurora_slave_lane_up [get_bd_pins axi_slave/lane_up] [get_bd_pins system_ila_0/probe1]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets aurora_slave_lane_up]
-  connect_bd_net -net aurora_slave_mmcm_not_locked_out [get_bd_pins aurora_slave/mmcm_not_locked_out] [get_bd_pins c2c_master/aurora_mmcm_not_locked] [get_bd_pins c2c_slave/aurora_mmcm_not_locked]
-  connect_bd_net -net aurora_slave_sync_clk_out [get_bd_pins aurora_master/sync_clk] [get_bd_pins aurora_slave/sync_clk_out]
-  connect_bd_net -net aurora_slave_user_clk_out [get_bd_pins aurora_master/user_clk] [get_bd_pins aurora_slave/user_clk_out] [get_bd_pins c2c_master/axi_c2c_phy_clk] [get_bd_pins c2c_slave/axi_c2c_phy_clk]
-  connect_bd_net -net c2c_master_aurora_pma_init_out [get_bd_pins aurora_master/pma_init] [get_bd_pins c2c_master/aurora_pma_init_out]
-  connect_bd_net -net c2c_master_aurora_reset_pb [get_bd_pins aurora_master/reset_pb] [get_bd_pins c2c_master/aurora_reset_pb]
-  connect_bd_net -net c2c_master_axi_c2c_link_status_out [get_bd_pins c2c_master/axi_c2c_link_status_out] [get_bd_pins system_ila_0/probe5]
+  connect_bd_net -net aurora_slave_mmcm_not_locked_out [get_bd_pins axi_master/aurora_mmcm_not_locked] [get_bd_pins axi_slave/aurora_mmcm_not_locked]
+  connect_bd_net -net aurora_slave_sync_clk_out [get_bd_pins axi_master/sync_clk] [get_bd_pins axi_slave/sync_clk_out]
+  connect_bd_net -net aurora_slave_user_clk_out [get_bd_pins axi_master/user_clk] [get_bd_pins axi_slave/axi_c2c_phy_clk]
+  connect_bd_net -net c2c_master_axi_c2c_link_status_out [get_bd_pins axi_master/axi_c2c_link_status_out] [get_bd_pins system_ila_0/probe5]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets c2c_master_axi_c2c_link_status_out]
-  connect_bd_net -net c2c_slave_aurora_pma_init_out [get_bd_pins aurora_slave/pma_init] [get_bd_pins c2c_slave/aurora_pma_init_out]
-  connect_bd_net -net c2c_slave_aurora_reset_pb [get_bd_pins aurora_slave/reset_pb] [get_bd_pins c2c_slave/aurora_reset_pb]
-  connect_bd_net -net c2c_slave_axi_c2c_link_status_out [get_bd_pins c2c_slave/axi_c2c_link_status_out] [get_bd_pins system_ila_0/probe2]
+  connect_bd_net -net c2c_slave_axi_c2c_link_status_out [get_bd_pins axi_slave/axi_c2c_link_status_out] [get_bd_pins system_ila_0/probe2]
   set_property HDL_ATTRIBUTE.DEBUG {true} [get_bd_nets c2c_slave_axi_c2c_link_status_out]
-  connect_bd_net -net clk_wiz_0_clk_100M [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_traffic_gen_0/s_axi_aclk] [get_bd_pins c2c_master/s_aclk] [get_bd_pins c2c_slave/m_aclk] [get_bd_pins c2c_slave/m_axi_lite_aclk] [get_bd_pins clk_wiz_0/clk_100M] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins system_ila_0/clk] [get_bd_pins system_ila_2/clk]
-  connect_bd_net -net clk_wiz_0_clk_50M [get_bd_pins aurora_master/init_clk] [get_bd_pins aurora_slave/init_clk] [get_bd_pins c2c_master/aurora_init_clk] [get_bd_pins c2c_slave/aurora_init_clk] [get_bd_pins clk_wiz_0/clk_50M]
+  connect_bd_net -net clk_wiz_0_clk_100M [get_bd_pins axi_interconnect_0/ACLK] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins axi_master/s_aclk] [get_bd_pins axi_slave/m_axi_lite_aclk] [get_bd_pins axi_traffic_gen_0/s_axi_aclk] [get_bd_pins clk_wiz_0/clk_100M] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins system_ila_0/clk] [get_bd_pins system_ila_2/clk]
+  connect_bd_net -net clk_wiz_0_clk_50M [get_bd_pins axi_master/init_clk] [get_bd_pins axi_slave/aurora_init_clk] [get_bd_pins clk_wiz_0/clk_50M]
   connect_bd_net -net ddr4_0_c0_ddr4_ui_clk [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins ddr4_0/c0_ddr4_ui_clk] [get_bd_pins proc_sys_reset_1/slowest_sync_clk]
   connect_bd_net -net ddr4_0_c0_ddr4_ui_clk_sync_rst [get_bd_pins ddr4_0/c0_ddr4_ui_clk_sync_rst] [get_bd_pins proc_sys_reset_1/ext_reset_in]
   connect_bd_net -net ext_reset_in_0_1 [get_bd_ports rst_btn] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins util_vector_logic_0/Op1]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/S00_ARESETN] [get_bd_pins axi_traffic_gen_0/s_axi_aresetn] [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_pins smartconnect_0/aresetn]
   connect_bd_net -net util_vector_logic_0_Res [get_bd_pins ddr4_0/sys_rst] [get_bd_pins util_vector_logic_0/Res]
-  connect_bd_net -net xlconstant_0_dout [get_bd_pins c2c_master/aurora_pma_init_in] [get_bd_pins c2c_slave/aurora_pma_init_in] [get_bd_pins xlconstant_0/dout]
+  connect_bd_net -net xlconstant_0_dout [get_bd_pins axi_master/aurora_pma_init_in] [get_bd_pins axi_slave/aurora_pma_init_in] [get_bd_pins xlconstant_0/dout]
 
   # Create address segments
-  assign_bd_address -offset 0x76000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces axi_traffic_gen_0/Data] [get_bd_addr_segs c2c_master/s_axi/Mem0] -force
-  assign_bd_address -offset 0x44A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces c2c_slave/MAXI-Lite] [get_bd_addr_segs axi_traffic_gen_0/S_AXI/Reg0] -force
-  assign_bd_address -offset 0x001000000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces c2c_slave/MAXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
+  assign_bd_address -offset 0x76000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces axi_traffic_gen_0/Data] [get_bd_addr_segs axi_master/c2c_master/s_axi/Mem0] -force
+  assign_bd_address -offset 0x44A00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces axi_slave/c2c_slave/MAXI-Lite] [get_bd_addr_segs axi_traffic_gen_0/S_AXI/Reg0] -force
+  assign_bd_address -offset 0x001000000000 -range 0x000400000000 -target_address_space [get_bd_addr_spaces axi_slave/c2c_slave/MAXI] [get_bd_addr_segs ddr4_0/C0_DDR4_MEMORY_MAP/C0_DDR4_ADDRESS_BLOCK] -force
 
 
   # Restore current instance
