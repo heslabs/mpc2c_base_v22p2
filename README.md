@@ -1,4 +1,4 @@
-# Arm SoC with DDR Design Example
+# Arm SoC with DDR FPGA Design Example
 
 ### Clone the GitHub project
 ```
