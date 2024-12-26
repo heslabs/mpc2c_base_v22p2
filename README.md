@@ -1,4 +1,4 @@
-# Arm SoC with DDR reference design 
+# Arm SoC with DDR Design Example
 
 ### Clone the GitHub project
 ```
