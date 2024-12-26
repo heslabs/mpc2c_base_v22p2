@@ -1,3 +1,5 @@
+# Arm SoC with DDR reference design 
+
 ### Clone the GitHub project
 ```
 $ git clone https://github.com/heslabs/haps_mpsoc_base
