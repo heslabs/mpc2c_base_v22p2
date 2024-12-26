@@ -1,4 +1,4 @@
-# Arm SoC with DDR FPGA Design Example
+# Cortex-A SoC with DDR FPGA Design Example
 
 ### Clone the GitHub project
 ```
